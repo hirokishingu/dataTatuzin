@@ -124,6 +124,54 @@ ax.yaxis.grid(True)
 plt.show()
 
 
+print(50 * "=")
+print("Section: Learning the weights of the logistic cost function")
+print(50 * "=")
+
+def cost_1(z):
+  return - np.log(sigmoid(z))
+
+def cost_0(z):
+  return - np.log(1 - sigmoid(z))
+
+z = np.arange(-10, 10, 0.1)
+phi_z = sigmoid(z)
+
+c1 = [cost_1(x) for x in z]
+plt.plot(phi_z, c1, label="J(w) if y=1")
+
+c0 = [cost_0(x) for x in z]
+plt.plot(phi_z, c0, linestyle="--", label="J(w) if y=0")
+
+plt.ylim(0.0, 5.1)
+plt.xlim([0, 1])
+plt.xlabel("$\phi$(z)")
+plt.ylabel("J(w)")
+plt.legend(loc="best")
+
+plt.show()
+
+
+print(50 * "=")
+print("Section: Training a logistic regression model with scikit-learn")
+print(50 * "-")
+
+lr = LogisticRegression(C=1000.0, random_state=0)
+lr.fit(X_train_std, y_train)
+
+plot_decision_regions(X_combined_std, y_combined,
+                      classifier=lr, test_idx=range(105, 150))
+plt.xlabel("petal length [standardized]")
+plt.ylabel("petal width [standardized]")
+plt.legend(loc="upper left")
+
+plt.show()
+
+print("Predicted probabilities", lr.predict_proba(X_test_std[0, :].reshape(1, -1)))
+
+
+
+
 
 
 
