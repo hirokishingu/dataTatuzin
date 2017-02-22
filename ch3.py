@@ -170,7 +170,28 @@ plt.show()
 print("Predicted probabilities", lr.predict_proba(X_test_std[0, :].reshape(1, -1)))
 
 
+print(50 * "=")
+print("Section: Trackling overfitting via regularization")
+print(50 * "-")
 
+weights, params = [], []
+for c in np.arange(-5, 5):
+  lr = LogisticRegression(C=10**c, random_state=0)
+  lr.fit(X_train_std, y_train)
+  weights.append(lr.coef_[1])
+  params.append(10**c)
+
+weights = np.array(weights)
+plt.plot(params, weights[:, 0],
+          label="petal length")
+plt.plot(params, weights[:, 1], linestyle="--",
+          label="petal width")
+plt.ylabel("weigt coefficient")
+plt.xlabel("c")
+plt.legend(loc="upper left")
+plt.xscale("log")
+
+plt.show()
 
 
 
