@@ -177,9 +177,153 @@ X_train, X_test, y_train, y_test = \
 
 
 
+print(50 * "=")
+print("Section: Bringing features onto the same scale")
+print(50 * "-")
+
+mms = MinMaxScaler()
+X_train_norm = mms.fit_transform(X_train)
+X_test_norm = mms.transform(X_test)
+
+stdsc = StandardScaler()
+X_train_std = stdsc.fit_transform(X_train)
+X_test_std = stdsc.transform(X_test)
+
+ex = pd.DataFrame([0, 1, 2, 3, 4, 5])
+print("Scaling Example:\n")
+print("\nInput array:\n", ex)
+ex[1] = (ex[0] - ex[0].mean()) / ex[0].std(ddof=0)
+
+ex[2] = (ex[0] - ex[0].min()) / (ex[0].max() - ex[0].min())
+ex.columns = ["input", "standardized", "normalized"]
+print("\nOutput array after scaling:\n", ex)
 
 
 
+print(50 * "=")
+print("Section: Sparse solutions with L1-regularization")
+print(50 * "-")
+
+lr = LogisticRegression(penalty="l1", C=0.1)
+lr.fit(X_train_std, y_train)
+print("Training accuracy:", lr.score(X_train_std, y_train))
+print("Test accuracy:", lr.score(X_test_std, y_test))
+print("Intercept:", lr.intercept_)
+print("Model weights:", lr.coef_)
+
+fig = plt.figure()
+ax = plt.subplot(111)
+
+colors = ['blue', 'green', 'red', 'cyan',
+          'magenta', 'yellow', 'black',
+          'pink', 'lightgreen', 'lightblue',
+          'gray', 'indigo', 'orange']
+
+weights, params = [], []
+for c in np.arange(-4, 6):
+  lr = LogisticRegression(penalty="l1", C=10**c, random_state=0)
+  lr.fit(X_train_std, y_train)
+  weights.append(lr.coef_[1])
+  params.append(10**c)
+
+weights = np.array(weights)
+
+for column, color in zip(range(weights.shape[1]), colors):
+  plt.plot(params, weights[:, column],
+            label=df_wine.columns[column + 1],
+            color=color)
+plt.axhline(0, color="black", linestyle="--", linewidth=3)
+plt.xlim([10**(-50), 10**5])
+plt.ylabel("weight coefficient")
+plt.xlabel("C")
+plt.xscale("log")
+plt.legend(loc="upper left")
+ax.legend(loc="upper center",
+          bbox_to_anchor=(1.38, 1.03),
+          ncol=1, fancybox=True)
+
+plt.show()
+
+
+
+print(50 * "=")
+print("Section: Sequential feature selection algorithms")
+print(50 * "-")
+
+class SBS():
+  def __init__(self, estimator, k_features, scoring=accuracy_score, test_size=0.25, random_state=1):
+    self.scoring = scoring
+    self.estimator = clone(estimator)
+    self.k_features = k_features
+    self.test_size = test_size
+    self.random_state = random_state
+
+  def fit(self, X, y):
+
+    X_train, X_test, y_train, y_test = \
+        train_test_split(X, y, test_size=self.test_size,
+                          random_state=self.random_state)
+    dim = X_train.shape[1]
+    self.indices_ = tuple(range(dim))
+    self.subsets_ = [self.indices_]
+    score = self._calc_score(X_train, y_train, X_test, y_test, self.indices_)
+    self.scores_ = [score]
+
+    while dim > self.k_features:
+      scores = []
+      subsets = []
+
+      for p in combinations(self.indices_, r=dim - 1):
+        score =self._calc_score(X_train, y_train, X_test, y_test, p)
+        scores.append(score)
+        subsets.append(p)
+      best = np.argmax(scores)
+      self.indices_ = subsets[best]
+      self.subsets_.append(self.indices_)
+      dim -= 1
+
+      self.scores_.append(scores[best])
+    self.k_score_ = self.scores_[-1]
+
+    return self
+
+  def transform(self, X):
+    return X[:, self.indices_]
+
+  def _calc_score(self, X_train, y_train, X_test, y_test, indices):
+    self.estimator.fit(X_train[:, indices], y_train)
+    y_pred = self.estimator.predict(X_test[:, indices])
+    score = self.scoring(y_test, y_pred)
+    return score
+
+
+knn = KNeighborsClassifier(n_neighbors=2)
+
+sbs = SBS(knn, k_features=1)
+sbs.fit(X_train_std, y_train)
+
+k_feat = [len(k) for k in sbs.subsets_]
+
+plt.plot(k_feat, sbs.scores_, marker="o")
+plt.ylim([0.7, 1.1])
+plt.ylabel("Acuuracy")
+plt.xlabel("Number of features")
+plt.grid()
+
+plt.show()
+
+k5 = list(sbs.subsets_[8])
+print("Selected top 5 features:\n", df_wine.columns[1:][k5])
+
+knn.fit(X_train_std, y_train)
+print("\nPerformance using all features:\n")
+print("Training accuracy:", knn.score(X_train_std, y_train))
+print("Test accuracy:", knn.score(X_test_std, y_test))
+
+knn.fit(X_train_std[:, k5], y_train)
+print("\nPerformance using the top 5 feature:\n")
+print("Training accuracy:", knn.score(X_train_std[:, k5], y_train))
+print("Test accuracy:", knn.score(X_test_std[:, k5], y_test))
 
 
 
