@@ -59,6 +59,23 @@ print("\nEigenvalues \n%s" % eigen_vals)
 
 
 
+print(50 * "=")
+print("Section: Total and explained variance")
+print(50 * "-")
+
+tot = sum(eigen_vals)
+var_exp = [(i / tot) for i in sorted(eigen_vals, reverse=True)]
+cum_var_exp = np.cumsum(var_exp)
+
+plt.bar(range(1, 14), var_exp, alpha=0.5, align="center",
+        label="individual explained variance")
+plt.step(range(1, 14), cum_var_exp, where="mid",
+          label="cumulative explained variance")
+plt.ylabel("Explained variance ratio")
+plt.xlabel("Principal componets")
+plt.legend(loc="best")
+
+plt.show()
 
 
 
