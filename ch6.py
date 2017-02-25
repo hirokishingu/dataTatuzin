@@ -180,11 +180,101 @@ plt.show()
 
 
 
+print(50 * '=')
+print('Section: Addressing over- and underfitting with validation curves')
+print(50 * '-')
+
+param_range = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+train_scores, test_scores = validation_curve(
+  estimator=pipe_lr,
+  X=X_train,
+  y=y_train,
+  param_name="clf__C",
+  param_range=param_range,
+  cv=10)
+
+train_mean = np.mean(train_scores, axis=1)
+train_std = np.std(train_scores, axis=1)
+test_mean = np.mean(test_scores, axis=1)
+test_std = np.std(test_scores, axis=1)
+
+plt.plot(param_range, train_mean,
+          color="blue", marker="o",
+          markersize=5, label="training accuracy")
+
+plt.fill_between(param_range, train_mean + train_std,
+                  train_mean - train_std, alpha=0.15,
+                  color="blue")
+
+plt.plot(param_range, test_mean,
+          color="green", linestyle="--",
+          marker="s", markersize=5,
+          label="validation accuracy")
+
+plt.fill_between(param_range,
+                  test_mean + test_std,
+                  test_mean - test_std,
+                  alpha=0.15, color="green")
+
+plt.grid()
+plt.xscale("log")
+plt.legend(loc="lower right")
+plt.xlabel("Parameter C")
+plt.ylabel("Accuracy")
+plt.ylim([0.8, 1.0])
+
+plt.show()
+
+
+print(50 * '=')
+print('Section: Tuning hyperparameters via grid search')
+print(50 * '-')
+
+
+pipe_svc = Pipeline([("scl", StandardScaler()),
+                      ("clf", SVC(random_state=1))])
+
+param_range = [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+
+param_grid = [{"clf__C": param_range,
+              "clf__kernel": ["linear"]},
+              {"clf__C": param_range,
+              "clf__gamma": param_range,
+              "clf__kernel": ["rbf"]}]
+
+gs = GridSearchCV(estimator=pipe_svc,
+                  param_grid=param_grid,
+                  scoring="accuracy",
+                  cv=10,
+                  n_jobs=-1)
+gs = gs.fit(X_train, y_train)
+print("Validation accuracy", gs.best_score_)
+print("Best parameters", gs.best_params_)
+
+clf = gs.best_estimator_
+clf.fit(X_train, y_train)
+print("Test accuracy: %.3f" % clf.score(X_test, y_test))
 
 
 
+print(50 * '=')
+print('Section: Algorithm selection with nested cross-validation')
+print(50 * '-')
 
+gs = GridSearchCV(estimator=pipe_svc,
+                  param_grid=param_grid,
+                  scoring="accuracy",
+                  cv=2)
 
+scores = cross_val_score(gs, X_train, y_train, scoring="accuracy", cv=5)
+print("CV accuracy: %.3f +/- %.3f" % (np.mean(scores), np.std(scores)))
+
+gs = GridSearchCV(estimator=DecisionTreeClassifier(random_state=0),
+                  param_grid=[{"max_depth": [1, 2, 3, 4, 5, 6, 7, None]}],
+                  scoring="accuracy",
+                  cv=2)
+scores = cross_val_score(gs, X_train, y_train, scoring="accuracy", cv=5)
+print("CV accuracy: %.3f +/- %.3f" % (np.mean(scores), np.std(scores)))
 
 
 
