@@ -55,6 +55,7 @@
 - MajorityVoteClassifier
 - バギング
 - ブーストラップ
+## CH8器会学習の適用１ー感情分析
 
 
 

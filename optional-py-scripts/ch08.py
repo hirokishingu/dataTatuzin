@@ -63,7 +63,7 @@ df.columns = ['review', 'sentiment']
 
 np.random.seed(0)
 df = df.reindex(np.random.permutation(df.index))
-
+movie_data 2
 df.to_csv('./movie_data.csv', index=False)
 """
 
