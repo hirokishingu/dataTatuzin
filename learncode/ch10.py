@@ -126,6 +126,41 @@ price_std = lr.predict(num_rooms_std)
 print("Price in $1000's: %.3f" % sc_y.inverse_transform(price_std))
 
 
+print(50 * '=')
+print('Section: Estimating the coefficient of a'
+      ' regression model via scikit-learn')
+print(50 * '-')
+
+
+slr = LinearRegression()
+slr.fit(X, y)
+y_pred = slr.predict(X)
+print("Slope: %.3f" % slr.coef_[0])
+print("Intercept: %.3f" % slr.intercept_)
+
+lin_regplot(X, y, slr)
+plt.xlabel("Average nimber of rooms [RM]")
+plt.ylabel("Price in $1000\'s [MEDV]")
+
+plt.show()
+
+Xb = np.hstack((np.ones((X.shape[0], 1)), X))
+w = np.zeros(X.shape[1])
+z = np.linalg.inv(np.dot(Xb.T, Xb))
+w = np.dot(z, np.dot(Xb.T, y))
+
+print("Slope: %.3f" % w[1])
+print("Intercept: %.3f" % w[0])
+
+
+
+
+
+
+
+
+
+
 
 
 
