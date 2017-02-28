@@ -239,6 +239,31 @@ plt.show()
 
 
 
+print(50 * '=')
+print('Section: Attaching dendrograms to a heat map')
+print(50 * '-')
+
+fig = plt.figure(figsize=(8, 8), facecolor="white")
+axd = fig.add_axes([0.09, 0.1, 0.2, 0.6])
+
+row_dendr = dendrogram(row_clusters, orientation="left")
+
+df_rowclust = df.ix[row_dendr["leaves"][::-1]]
+
+axd.set_xticks([])
+axd.set_yticks([])
+
+for i in axd.spines.values():
+  i.set_visible(False)
+
+axm = fig.add_axes([0.23, 0.1, 0.6, 0.6])
+cax = axm.matshow(df_rowclust, interpolation="nearest", cmap="hot_r")
+fig.colorbar(cax)
+axm.set_xticklabels([""] + list(df_rowclust.columns))
+axm.set_yticklabels([""] + list(df_rowclust.index))
+
+plt.show()
+
 
 
 
